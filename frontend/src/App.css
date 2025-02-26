@@ -1,0 +1,35 @@
+/* App-specific styles that complement Tailwind CSS */
+
+/* Animation for logo spin */
+@keyframes logo-spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* Apply animation to logo if reduced motion is not preferred */
+@media (prefers-reduced-motion: no-preference) {
+  .animate-spin {
+    animation: logo-spin infinite 20s linear;
+  }
+}
+
+/* Custom progress bar animations */
+@keyframes progress {
+  0% {
+    width: 0%;
+  }
+  100% {
+    width: 100%;
+  }
+}
+
+.animate-progress {
+  animation: progress var(--duration, 3s) linear forwards;
+  width: 0%; /* Start at 0% width */
+  height: 100%; /* Fill the height of the container */
+  transition: width 0.3s ease-in-out; /* Smooth transition for non-animated state */
+}

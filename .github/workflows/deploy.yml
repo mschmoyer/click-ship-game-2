@@ -1,0 +1,36 @@
+name: Deploy
+
+on:
+  push:
+    branches: [ main ]
+
+jobs:
+  deploy-backend:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: Login to Heroku
+        uses: akhileshns/heroku-deploy@v3.12.14
+        with:
+          heroku_api_key: ${{ secrets.HEROKU_API_KEY }}
+          heroku_app_name: "clickship-backend"
+          heroku_email: ${{ secrets.HEROKU_EMAIL }}
+          usedocker: true
+          appdir: "backend"
+      - name: Run migrations
+        run: |
+          heroku run python -m alembic upgrade head --app clickship-backend
+
+  deploy-frontend:
+    runs-on: ubuntu-latest
+    needs: deploy-backend
+    steps:
+      - uses: actions/checkout@v3
+      - name: Login to Heroku
+        uses: akhileshns/heroku-deploy@v3.12.14
+        with:
+          heroku_api_key: ${{ secrets.HEROKU_API_KEY }}
+          heroku_app_name: "clickship-frontend"
+          heroku_email: ${{ secrets.HEROKU_EMAIL }}
+          usedocker: true
+          appdir: "frontend"
