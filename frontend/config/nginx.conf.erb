@@ -1,0 +1,53 @@
+daemon off;
+# Heroku dynos have at least 4 cores.
+worker_processes auto;
+
+events {
+  use epoll;
+  accept_mutex on;
+  worker_connections 1024;
+}
+
+http {
+  gzip on;
+  gzip_comp_level 2;
+  gzip_min_length 512;
+  gzip_proxied any; # Heroku router sends Via header
+
+  server_tokens off;
+
+  log_format l2met 'measure#nginx.service=$request_time request_id=$http_x_request_id';
+  access_log <%= ENV['NGINX_ACCESS_LOG_PATH'] || '/dev/stdout' %> l2met;
+  error_log <%= ENV['NGINX_ERROR_LOG_PATH'] || '/dev/stderr' %>;
+
+  include mime.types;
+  default_type application/octet-stream;
+  sendfile on;
+
+  # Must read the body in 5 seconds.
+  client_body_timeout 5;
+
+  server {
+    listen <%= ENV["PORT"] %>;
+    server_name _;
+    keepalive_timeout 5;
+    client_max_body_size 1M;
+
+    root /app;
+
+    location / {
+      try_files $uri $uri/ /index.html;
+    }
+
+    # Cache assets
+    location ~* \.(jpg|jpeg|png|gif|ico|css|js)$ {
+      expires 7d;
+      add_header Cache-Control public;
+    }
+
+    # Force HTTPS
+    if ($http_x_forwarded_proto != "https") {
+      return 301 https://$host$request_uri;
+    }
+  }
+}
